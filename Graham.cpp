@@ -2,21 +2,19 @@
 #include <cstdlib>
 #include <cmath>
 #include <vector>
+#include <fstream>
 
 using namespace std;
-
-
 
 //gcc -o Graham Graham_scan.c -L/path/to/libs -lm
 
 
 typedef struct Point {
 
-    int x;
-    int y;
+    double x;
+    double y;
 
 } point;
-
 
 typedef struct AnglePoint {
 
@@ -161,6 +159,24 @@ vector<point> Graham_scan(point *points, int n){
 //some examples
 int main(int argc, char **argv){
 
+  fstream file;
+  string filename = argv[1];
+  file.open(filename.c_str());
+  int i = 0, n;
+
+  file >> n;
+
+  while(!file.eof()){
+      file>>points[i].x;
+      file>>points[i].y;
+      i++;
+  }
+
+vector<point> convexHull = Graham_scan(points, n);
+
+for(auto const& v: convexHull) {
+  cout<<v.x<<" "<<v.y<<endl;
+}
 
     return 0;
 }
