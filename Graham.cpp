@@ -174,8 +174,24 @@ int main(int argc, char **argv){
 
 vector<point> convexHull = Graham_scan(points, n);
 
+    ;
+  file.open(filename.c_str());
+  int i = 0, n;
+
+  file >> n;
+
+  while(!file.eof()){
+      file>>points[i].x;
+      file>>points[i].y;
+      i++;
+  }
+
+vector<point> convexHull = Graham_scan(points, n);
+
+i=1;
+    
 for(auto const& v: convexHull) {
-  cout<<v.x<<" "<<v.y<<endl;
+  cout<<"q"<<i++<<": "<<cout<<v.x<<" "<<v.y<<endl;
 }
 
     return 0;
