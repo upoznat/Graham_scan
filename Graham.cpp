@@ -26,6 +26,7 @@ typedef struct AnglePoint {
 
 
 point *points;
+anglePoint *angles;
 
 
 point makeVectorFromPoints(point a, point b);
@@ -68,7 +69,7 @@ void simplePolygon(point *points, int n){
     points[0] = points[minIndex];
     points[minIndex] = tmp;
 
-    anglePoint *angles = new anglePoint[n];
+    angles = new anglePoint[n];
 
 
     //x-axis vector
@@ -79,11 +80,27 @@ void simplePolygon(point *points, int n){
     for(i=1; i<n;i++){
       anglePoint ap;
       ap.p = points+i;
-      ap.angle = angle(makeVectorFromPoints(points[0], points[i]), e1);
-      angles[i-1] = ap;
+      
+      ap.angle = angle(e1,makeVectorFromPoints(points[0], points[i]));
+      
+     // if(abs(ap.angle-3.14)<0.01)
+     // 	ap.angle = 0.0;
+      
+	  angles[i-1] = ap;
     }
 
-      qsort((void*)(angles), n, sizeof(anglePoint), comparator);
+		 for(i=0;i<n;i++)
+      	cout<<points[i].x<<" "<<points[i].y<<" "<<endl;
+      	
+      	for(i=0;i<n-1;i++)
+      	cout<<angles[i].angle<<endl;
+
+      qsort((void*)(angles), n-1, sizeof(anglePoint), comparator);
+      
+      cout<<"posle sorta"<<endl;
+      for(i=0;i<n-1;i++)
+      	cout<<angles[i].p->x<<" "<<angles[i].p->y<<endl;
+      	
 
 }
 
@@ -99,7 +116,7 @@ int comparator(const void *p, const void *q)
     else if ((l->angle)<(r->angle))
         return -1;
         else
-            if(distance(points,l->p)>distance(points,r->p))
+            if(distance(points,l->p)<distance(points,r->p))
                 return 1;
             else
                 return -1;
@@ -132,23 +149,38 @@ vector<point> Graham_scan(point *points, int n){
 
 
     convexHull.push_back( points[0] );
-    convexHull.push_back( points[1] );
-    convexHull.push_back( points[2] );
-    m=3;
+    convexHull.push_back(*(angles[0].p));
+    convexHull.push_back( *(angles[1].p));
+    m=2;
+    
+     cout<<"KONV OMOTAC:";
+			for(vector<point>::iterator it = convexHull.begin(); it<convexHull.end(); ++it) 
+  				cout<<it->x<<" "<<it->y<<endl;
 
+	
 
-    for(i=3;i<n;i++){
+    for(i=2;i<n-1;i++){
+    	
+    		cout<<"for:    "<<angle(makeVectorFromPoints(convexHull[m-1], convexHull[m]),
+                      makeVectorFromPoints(convexHull[m] ,*(angles[i].p)))<<endl;
 
           while(angle(makeVectorFromPoints(convexHull[m-1], convexHull[m]),
-                      makeVectorFromPoints(convexHull[m] ,points[i]))<0){
+                      makeVectorFromPoints(convexHull[m] ,*(angles[i].p)))<=0){
+                      	
+                      
 
             m--;
             convexHull.pop_back();
           }
 
             m++;
-            convexHull.push_back(points[i]);
-    }
+            convexHull.push_back(*(angles[i].p));
+        }
+            
+            cout<<"KONV OMOTAC:";
+			for(vector<point>::iterator it = convexHull.begin(); it<convexHull.end(); ++it) 
+  				cout<<it->x<<" "<<it->y<<endl;
+   
 
     return convexHull;
 
@@ -159,39 +191,48 @@ vector<point> Graham_scan(point *points, int n){
 //some examples
 int main(int argc, char **argv){
 
+//point a,b,c;
+//
+//a.x = 0, a.y = 0;
+//b.x = 1, b.y = 0;
+//c.x = 5, c.y = 10;
+//
+//cout<<  angle(makeVectorFromPoints(b, a),
+//              makeVectorFromPoints(a , c));
+//
+//
+
+
+
+
   fstream file;
-  string filename = argv[1];
+  string filename = "data.txt";
   file.open(filename.c_str());
   int i = 0, n;
 
+
+
+
+
   file >> n;
+  points = new point[n];
 
   while(!file.eof()){
       file>>points[i].x;
       file>>points[i].y;
       i++;
   }
+  
+  simplePolygon(points,n);
 
 vector<point> convexHull = Graham_scan(points, n);
 
-    ;
-  file.open(filename.c_str());
-  int i = 0, n;
-
-  file >> n;
-
-  while(!file.eof()){
-      file>>points[i].x;
-      file>>points[i].y;
-      i++;
-  }
-
-vector<point> convexHull = Graham_scan(points, n);
 
 i=1;
-    
-for(auto const& v: convexHull) {
-  cout<<"q"<<i++<<": "<<cout<<v.x<<" "<<v.y<<endl;
+cout<<"convexHull";
+for(vector<point>::iterator it = convexHull.begin(); it<convexHull.end(); ++it) {
+  cout<<//"q"<<i++<<": "<<
+   it->x<<" "<<it->y<<endl;
 }
 
     return 0;
