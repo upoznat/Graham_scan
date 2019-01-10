@@ -3,6 +3,8 @@
 #include <cmath>
 #include <vector>
 #include <fstream>
+#include <string>
+#include <cerrno>
 
 using namespace std;
 
@@ -36,6 +38,16 @@ int comparator(const void *p, const void *q);
 double distance(point *a, point *b);
 int dot(point a, point b);
 int perpdot(point a, point b);
+void error(char *message);
+
+
+
+//function for handling errors
+void error(char *message){
+	
+	perror(message);
+	exit(1);
+}
 
 
 
@@ -56,6 +68,13 @@ point makeVectorFromPoints(point a, point b){
 
 //reorders an array of points so that they form a polygon when visited respectively
 void simplePolygon(point *points, int n){
+	
+	if(points==NULL)
+		error("Array points is not validly defined\n");
+		
+	if(n<3)
+		error("Not enough points! Number of points must not be smaller than 3\n Try with different input");
+		
     //p0 is a point with the lowest y coordinate (in case of many, choose one with the greatest x)
     int minIndex = 0, i;
     for(i=1; i<n;i++){
@@ -63,6 +82,8 @@ void simplePolygon(point *points, int n){
             minIndex = i;
      else if(points[i].y == points[minIndex].y)
              minIndex = (points[i].x < points[minIndex].x) ? minIndex : i;
+   				
+   					
     }
     //putting a point from minIndex position to a[0]
     point tmp = points[0];
@@ -76,6 +97,7 @@ void simplePolygon(point *points, int n){
     point e1;
     e1.x = 1;
     e1.y = 0;
+    
     //determining angles between lines p0 and pi and x-axis vector
     for(i=1; i<n;i++){
       anglePoint ap;
@@ -83,25 +105,11 @@ void simplePolygon(point *points, int n){
       
       ap.angle = angle(e1,makeVectorFromPoints(points[0], points[i]));
       
-     // if(abs(ap.angle-3.14)<0.01)
-     // 	ap.angle = 0.0;
-      
 	  angles[i-1] = ap;
     }
 
-		 for(i=0;i<n;i++)
-      	cout<<points[i].x<<" "<<points[i].y<<" "<<endl;
-      	
-      	for(i=0;i<n-1;i++)
-      	cout<<angles[i].angle<<endl;
-
       qsort((void*)(angles), n-1, sizeof(anglePoint), comparator);
-      
-      cout<<"posle sorta"<<endl;
-      for(i=0;i<n-1;i++)
-      	cout<<angles[i].p->x<<" "<<angles[i].p->y<<endl;
       	
-
 }
 
 //comparator function for qsort
@@ -123,7 +131,7 @@ int comparator(const void *p, const void *q)
 
 }
 
-
+//distance between two points
 double distance(point *a, point *b){
 
         return sqrt(pow(abs((a->x)-(b->x)),2)+pow(abs((a->x)-(b->y)),2));
@@ -136,7 +144,7 @@ int dot(point a, point b){
     return a.x*b.x + a.y*b.y;
 }
 
-
+//perpendicular dot product of two vectors
 int perpdot(point a, point b){
     return a.x*b.y-a.y*b.x;
 }
@@ -144,43 +152,44 @@ int perpdot(point a, point b){
 
 //returns a convex hull for points given as input
 vector<point> Graham_scan(point *points, int n){
+	
     vector <point> convexHull;
+	convexHull.reserve(n);
+	
     int i, m;
-
+    
+    if (n < 3) {
+    	
+    	perror( "Not enough points! Number of points must not be smaller than 3\n Try with different input");
+	}
+		
 
     convexHull.push_back( points[0] );
     convexHull.push_back(*(angles[0].p));
     convexHull.push_back( *(angles[1].p));
     m=2;
     
-     cout<<"KONV OMOTAC:";
-			for(vector<point>::iterator it = convexHull.begin(); it<convexHull.end(); ++it) 
-  				cout<<it->x<<" "<<it->y<<endl;
-
-	
 
     for(i=2;i<n-1;i++){
     	
-    		cout<<"for:    "<<angle(makeVectorFromPoints(convexHull[m-1], convexHull[m]),
-                      makeVectorFromPoints(convexHull[m] ,*(angles[i].p)))<<endl;
-
-          while(angle(makeVectorFromPoints(convexHull[m-1], convexHull[m]),
-                      makeVectorFromPoints(convexHull[m] ,*(angles[i].p)))<=0){
-                      	
-                      
-
-            m--;
+          while((angle(makeVectorFromPoints(convexHull[m-1], convexHull[m]),
+                      makeVectorFromPoints(convexHull[m] ,*(angles[i].p)))<=0) || (abs(angle(makeVectorFromPoints(convexHull[m-1], convexHull[m]),
+                      makeVectorFromPoints(convexHull[m] ,*(angles[i].p)))-3.14)<=0.01)){
+                                   
+                     
+            m--; 
             convexHull.pop_back();
+         
           }
-
+		
             m++;
-            convexHull.push_back(*(angles[i].p));
+		   
+		   
+		    convexHull.push_back(*(angles[i].p));
+           
+ 
         }
-            
-            cout<<"KONV OMOTAC:";
-			for(vector<point>::iterator it = convexHull.begin(); it<convexHull.end(); ++it) 
-  				cout<<it->x<<" "<<it->y<<endl;
-   
+          
 
     return convexHull;
 
@@ -191,28 +200,11 @@ vector<point> Graham_scan(point *points, int n){
 //some examples
 int main(int argc, char **argv){
 
-//point a,b,c;
-//
-//a.x = 0, a.y = 0;
-//b.x = 1, b.y = 0;
-//c.x = 5, c.y = 10;
-//
-//cout<<  angle(makeVectorFromPoints(b, a),
-//              makeVectorFromPoints(a , c));
-//
-//
-
-
-
 
   fstream file;
-  string filename = "data.txt";
+  string filename = argv[1];
   file.open(filename.c_str());
   int i = 0, n;
-
-
-
-
 
   file >> n;
   points = new point[n];
@@ -225,15 +217,15 @@ int main(int argc, char **argv){
   
   simplePolygon(points,n);
 
-vector<point> convexHull = Graham_scan(points, n);
+  vector<point> convexHull = Graham_scan(points, n);
 
+//i=0;
+//cout<<"convexHull\n"<<endl;
+//for(vector<point>::iterator it = convexHull.begin(); it<convexHull.end(); ++it) {
+//  cout<<"q"<<i++<<": "<<
+//   it->x<<" "<<it->y<<endl;
+//}
 
-i=1;
-cout<<"convexHull";
-for(vector<point>::iterator it = convexHull.begin(); it<convexHull.end(); ++it) {
-  cout<<//"q"<<i++<<": "<<
-   it->x<<" "<<it->y<<endl;
-}
 
     return 0;
 }
